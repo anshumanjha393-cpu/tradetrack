@@ -1,0 +1,2 @@
+/* Intentionally minimal: fixes missing App.css import for Vite/Next build.
+   Styles for the app are primarily handled by Tailwind and index.css/app/globals.css. */

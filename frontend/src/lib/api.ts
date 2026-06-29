@@ -1,5 +1,6 @@
 const BASE_URL = 'http://localhost:5000/api'
 
+/** Returns headers with the stored JWT token for authenticated requests. */
 function authHeaders() {
   return {
     'Content-Type': 'application/json',
@@ -7,6 +8,13 @@ function authHeaders() {
   }
 }
 
+/**
+ * Generic fetch wrapper that throws on non-OK responses.
+ * @param url - Full URL to request
+ * @param options - Standard `RequestInit` options
+ * @returns Parsed JSON response
+ * @throws {Error} With the server error message or "Request failed"
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function request<T = any>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)
@@ -18,6 +26,12 @@ async function request<T = any>(url: string, options?: RequestInit): Promise<T> 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResult = Promise<any>
 
+/**
+ * API client for all backend endpoints. Methods are organized by domain
+ * (Auth, Accounts, Transactions, Holdings, Budgets, Goals, Reports).
+ *
+ * All authenticated methods include the JWT token via `authHeaders()`.
+ */
 export const api = {
   // ── Auth ──────────────────────────────────────────
   async signup(name: string, email: string, password: string): ApiResult {

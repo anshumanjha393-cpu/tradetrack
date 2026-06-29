@@ -17,6 +17,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+/**
+ * Provides authentication state (user, token) to the component tree.
+ * Persists token and user to localStorage for session recovery.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(getToken())
   const [user, setUser] = useState<User | null>(() => {
@@ -51,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/** Hook to access auth context. Throws if used outside `<AuthProvider>`. */
 export const useAuth = () => {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')

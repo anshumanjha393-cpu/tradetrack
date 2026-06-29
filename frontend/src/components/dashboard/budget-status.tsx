@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '@/lib/api'
 import { useCurrencyFormatter } from '@/lib/use-currency-formatter'
 
@@ -30,6 +30,21 @@ export function BudgetStatus() {
     })
   }, [])
 
+  const now = useMemo(() => new Date(), [])
+  const currentMonth = now.getMonth()
+
+  const spentByCategory = useMemo(() => {
+    const map: Record<string, number> = {}
+    transactions.forEach((t) => {
+      const d = new Date(t.date)
+      if (d.getMonth() === currentMonth && t.category?.type === 'expense') {
+        const name = t.category.name
+        map[name] = (map[name] || 0) + Math.abs(Number(t.amount))
+      }
+    })
+    return map
+  }, [transactions, currentMonth])
+
   if (loading) {
     return (
       <section className="glass rounded-xl p-5 sm:p-7">
@@ -53,18 +68,6 @@ export function BudgetStatus() {
       </section>
     )
   }
-
-  const now = new Date()
-  const currentMonth = now.getMonth()
-
-  const spentByCategory: Record<string, number> = {}
-  transactions.forEach((t) => {
-    const d = new Date(t.date)
-    if (d.getMonth() === currentMonth && t.category?.type === 'expense') {
-      const name = t.category.name
-      spentByCategory[name] = (spentByCategory[name] || 0) + Math.abs(Number(t.amount))
-    }
-  })
 
   return (
     <section className="glass rounded-xl p-5 sm:p-7">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -27,6 +27,38 @@ export function RecentTransactions() {
       setLoading(false)
     })
   }, [])
+
+  const renderedItems = useMemo(
+    () =>
+      transactions.map((t) => {
+        const amount = parseFloat(t.amount)
+        const income = t.category?.type === 'income'
+        return (
+          <li
+            key={t.id}
+            className="flex items-center gap-3 border-b border-border py-2.5 last:border-0 sm:gap-4 sm:py-3"
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-2xl bg-secondary text-muted-foreground sm:size-10">
+              <CategoryIcon category={(t.category?.name ?? '') as Category} className="size-4 sm:size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium text-foreground sm:text-sm">{t.description}</p>
+              <p className="text-[10px] text-muted-foreground sm:text-xs">
+                {t.category?.name ?? 'Uncategorized'} ·{' '}
+                {new Date(t.date).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </p>
+            </div>
+            <span className={income ? 'text-xs font-medium tabular-nums text-success sm:text-sm' : 'text-xs font-medium tabular-nums text-foreground sm:text-sm'}>
+              {formatCurrency(amount, { sign: income })}
+            </span>
+          </li>
+        )
+      }),
+    [transactions, formatCurrency],
+  )
 
   return (
     <section className="glass flex h-full flex-col rounded-xl p-5 sm:p-7">
@@ -57,33 +89,7 @@ export function RecentTransactions() {
         <p className="text-xs text-muted-foreground sm:text-sm">No transactions yet.</p>
       ) : (
         <ul className="flex flex-col">
-          {transactions.map((t) => {
-            const amount = parseFloat(t.amount)
-            const income = t.category?.type === 'income'
-            return (
-              <li
-                key={t.id}
-                className="flex items-center gap-3 border-b border-border py-2.5 last:border-0 sm:gap-4 sm:py-3"
-              >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-2xl bg-secondary text-muted-foreground sm:size-10">
-                  <CategoryIcon category={(t.category?.name ?? '') as Category} className="size-4 sm:size-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-foreground sm:text-sm">{t.description}</p>
-                  <p className="text-[10px] text-muted-foreground sm:text-xs">
-                    {t.category?.name ?? 'Uncategorized'} ·{' '}
-                    {new Date(t.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-                <span className={income ? 'text-xs font-medium tabular-nums text-success sm:text-sm' : 'text-xs font-medium tabular-nums text-foreground sm:text-sm'}>
-                  {formatCurrency(amount, { sign: income })}
-                </span>
-              </li>
-            )
-          })}
+          {renderedItems}
         </ul>
       )}
     </section>

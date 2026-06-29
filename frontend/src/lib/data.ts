@@ -127,6 +127,22 @@ export const incomeVsExpense = [
   { month: 'Jun', income: 12882, expense: 9320 },
 ]
 
+/**
+ * Formats a number as a currency string with optional compact notation and sign.
+ *
+ * @param value - The numeric value to format
+ * @param opts - Formatting options
+ * @param opts.compact - Use compact notation (e.g. `$1.5k`, `$150k`). Triggers at >= 1,000.
+ * @param opts.sign - Prepend `+` for positive values, `-` for negative
+ * @param opts.symbol - Currency symbol (default: `$`)
+ * @returns Formatted currency string
+ *
+ * @example
+ * formatCurrency(1234)           // "$1,234"
+ * formatCurrency(1500, { compact: true })  // "$1.5k"
+ * formatCurrency(-500, { sign: true })     // "-$500"
+ * formatCurrency(1000, { symbol: '€' })    // "€1,000"
+ */
 export function formatCurrency(value: number, opts?: { compact?: boolean; sign?: boolean; symbol?: string }) {
   const abs = Math.abs(value)
   const sign = value < 0 ? '-' : opts?.sign ? '+' : ''

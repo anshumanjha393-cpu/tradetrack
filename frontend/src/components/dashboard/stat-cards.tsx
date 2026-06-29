@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Wallet, TrendingDown, PiggyBank, LineChart } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useCurrencyFormatter } from '@/lib/use-currency-formatter'
@@ -20,10 +20,15 @@ export function StatCards() {
     api.getSummary().then(setSummary)
   }, [])
 
-  const income = summary?.monthlyIncome ?? 0
-  const expenses = summary?.monthlyExpenses ?? 0
-  const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0
-  const portfolio = summary?.portfolioValue ?? 0
+  const stats = useMemo(() => {
+    const income = summary?.monthlyIncome ?? 0
+    const expenses = summary?.monthlyExpenses ?? 0
+    const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0
+    const portfolio = summary?.portfolioValue ?? 0
+    return { income, expenses, savingsRate, portfolio }
+  }, [summary])
+
+  const { income, expenses, savingsRate, portfolio } = stats
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useCurrencyFormatter } from '@/lib/use-currency-formatter'
@@ -26,6 +26,15 @@ export function NetWorthCard() {
     })
   }, [])
 
+  const derived = useMemo(() => {
+    const netWorth = summary?.netWorth ?? 0
+    const pnl = summary?.portfolioPnL ?? 0
+    const pnlPct = summary?.portfolioValue
+      ? ((pnl / (summary.portfolioValue - pnl)) * 100).toFixed(1)
+      : '0.0'
+    return { netWorth, pnl, pnlPct }
+  }, [summary])
+
   if (loading) {
     return (
       <section className="glass overflow-hidden rounded-xl p-5 sm:p-7 md:p-9">
@@ -38,11 +47,7 @@ export function NetWorthCard() {
     )
   }
 
-  const netWorth = summary?.netWorth ?? 0
-  const pnl = summary?.portfolioPnL ?? 0
-  const pnlPct = summary?.portfolioValue
-    ? ((pnl / (summary.portfolioValue - pnl)) * 100).toFixed(1)
-    : '0.0'
+  const { netWorth, pnl, pnlPct } = derived
 
   return (
     <section className="glass overflow-hidden rounded-xl p-5 sm:p-7 md:p-9">

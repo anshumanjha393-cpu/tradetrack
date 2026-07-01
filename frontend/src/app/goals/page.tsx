@@ -308,6 +308,7 @@ export default function GoalsPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-background px-4 py-6 sm:py-8 md:px-8 lg:px-12">
       <div className="max-w-7xl mx-auto">
         <PageHeader
@@ -453,6 +454,7 @@ export default function GoalsPage() {
           </FormField>
         </div>
       </Modal>
-    </div>
+      </div>
+    </>
   )
 }

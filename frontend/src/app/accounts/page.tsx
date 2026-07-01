@@ -176,8 +176,8 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:py-8 md:px-8 lg:px-12">
-      <div className="max-w-7xl mx-auto">
+    <>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-8 sm:px-5 sm:py-8 md:px-10 md:py-12">
         <PageHeader
           eyebrow="Accounts"
           title="Your Accounts"
@@ -292,6 +292,6 @@ export default function AccountsPage() {
           </FormField>
         </div>
       </Modal>
-    </div>
+    </>
   )
 }

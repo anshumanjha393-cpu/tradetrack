@@ -198,18 +198,18 @@ describe('API client', () => {
     )
   })
 
-  it('refreshPrices sends GET to /holdings/prices', async () => {
+  it('refreshPrices sends POST to /holdings/refresh', async () => {
     localStorage.setItem('token', 'tok')
     vi.mocked(globalThis.fetch).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ holdings: [] }),
+      json: async () => ({ holdings: [], summary: { fetched: 0, cached: 0, failed: 0 } }),
     } as Response)
 
     await api.refreshPrices()
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      `${BASE_URL}/holdings/prices`,
-      expect.objectContaining({ headers: expect.anything() }),
+      `${BASE_URL}/holdings/refresh`,
+      expect.objectContaining({ method: 'POST', headers: expect.anything() }),
     )
   })
 

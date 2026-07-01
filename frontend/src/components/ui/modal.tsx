@@ -63,8 +63,7 @@ export function Modal({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '100%', opacity: 1 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className={cn('relative z-10 flex w-full flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl sm:border sm:border-border max-h-[90dvh] sm:max-h-[85dvh]', maxWidth)}
-            style={{ background: 'linear-gradient(160deg, #151515, #111111)' }}
+            className={cn('glass relative z-10 flex w-full flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl sm:border sm:border-border max-h-[90dvh] sm:max-h-[85dvh]', maxWidth)}
           >
             {/* Mobile drag handle */}
             <div className="flex justify-center pt-3 sm:hidden">

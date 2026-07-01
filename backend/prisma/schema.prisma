@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AccountType {
+  checking
+  savings
+  investment
+  brokerage
+  retirement
+  credit
+}
+
+enum CategoryType {
+  income
+  expense
+}
+
 model User {
   id           String        @id @default(cuid())
   email        String        @unique
@@ -24,19 +38,21 @@ model Account {
   id           String        @id @default(cuid())
   userId       String
   name         String
-  type         String
+  type         AccountType
   balance      Decimal       @db.Decimal(12, 2)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+
+  @@index([userId])
 }
 
 model Category {
   id           String        @id @default(cuid())
   name         String
   icon         String?
-  type         String
+  type         CategoryType
   transactions Transaction[]
   budgets      Budget[]
 }
@@ -51,19 +67,24 @@ model Transaction {
   tags        String[]
   isRecurring Boolean   @default(false)
   createdAt   DateTime  @default(now())
-  account     Account   @relation(fields: [accountId], references: [id])
-  category    Category? @relation(fields: [categoryId], references: [id])
+  account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([accountId])
+  @@index([categoryId])
 }
 
 model Holding {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   ticker      String
-  quantity    Decimal  @db.Decimal(12, 4)
-  costBasis   Decimal  @db.Decimal(12, 2)
-  lastPrice   Decimal  @db.Decimal(12, 2)
+  quantity    Decimal   @db.Decimal(12, 4)
+  costBasis   Decimal   @db.Decimal(12, 2)
+  lastPrice   Decimal   @db.Decimal(12, 2)
   lastFetched DateTime?
-  user        User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Budget {
@@ -72,8 +93,11 @@ model Budget {
   categoryId   String
   monthlyLimit Decimal  @db.Decimal(12, 2)
   month        DateTime
-  user         User     @relation(fields: [userId], references: [id])
-  category     Category @relation(fields: [categoryId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([categoryId])
 }
 
 model Goal {
@@ -84,5 +108,7 @@ model Goal {
   currentAmount Decimal  @db.Decimal(12, 2)
   targetDate    DateTime
   icon          String?
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

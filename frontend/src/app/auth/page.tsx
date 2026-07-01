@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Mail,
   Lock,
@@ -50,7 +50,7 @@ const validateName = (name: string): boolean => {
   return name.trim().length >= 2;
 };
 
-function App() {
+function AuthPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -489,5 +489,5 @@ function App() {
   );
 }
 
-export default App;
+export default AuthPage;
 

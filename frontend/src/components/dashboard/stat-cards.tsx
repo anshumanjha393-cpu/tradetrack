@@ -17,7 +17,7 @@ export function StatCards() {
   const formatCurrency = useCurrencyFormatter()
 
   useEffect(() => {
-    api.getSummary().then(setSummary)
+    api.getSummary().then(setSummary).catch(() => {})
   }, [])
 
   const stats = useMemo(() => {

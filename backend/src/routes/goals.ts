@@ -1,63 +1,89 @@
 import { Router, Response } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../lib/prisma'
 import { authenticate, AuthRequest } from '../middleware/auth'
+import { createGoalSchema, updateGoalSchema } from '../lib/schemas'
+import { asyncHandler } from '../lib/async-handler'
+import { NotFoundError } from '../lib/errors'
+import { invalidateCache } from '../lib/cache'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 // GET all goals
-router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
-  try {
-    const goals = await prisma.goal.findMany({
-      where: { userId: req.userId },
-    })
-    res.json(goals)
-  } catch {
-    res.status(500).json({ error: 'Server error' })
-  }
-})
+router.get('/', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const goals = await prisma.goal.findMany({
+    where: { userId: req.userId },
+  })
+  res.json(goals)
+}))
 
 // POST create goal
-router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
-  try {
-    const { name, targetAmount, currentAmount, targetDate, icon } = req.body
-    const goal = await prisma.goal.create({
-      data: {
-        name,
-        targetAmount,
-        currentAmount,
-        targetDate: new Date(targetDate),
-        icon,
-        userId: req.userId!,
-      },
-    })
-    res.status(201).json(goal)
-  } catch {
-    res.status(500).json({ error: 'Server error' })
-  }
-})
+router.post('/', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = createGoalSchema.parse(req.body)
+  const { name, targetAmount, currentAmount, targetDate, icon } = parsed
 
-// PATCH update goal
-router.patch('/:id', authenticate, async (req: AuthRequest, res: Response) => {
-  try {
-    const goal = await prisma.goal.update({
-      where: { id: String(req.params.id) },
-      data: req.body,
-    })
-    res.json(goal)
-  } catch {
-    res.status(500).json({ error: 'Server error' })
-  }
-})
+  const goal = await prisma.goal.create({
+    data: {
+      name,
+      targetAmount,
+      currentAmount,
+      targetDate: new Date(targetDate),
+      icon,
+      userId: req.userId!,
+    },
+  })
 
-// DELETE goal
-router.delete('/:id', authenticate, async (req: AuthRequest, res: Response) => {
-  try {
-    await prisma.goal.delete({ where: { id: String(req.params.id) } })
-    res.json({ message: 'Goal deleted' })
-  } catch {
-    res.status(500).json({ error: 'Server error' })
+  // Invalidate reports cache
+  invalidateCache(`reports:${req.userId}`)
+
+  res.status(201).json(goal)
+}))
+
+// PATCH update goal (IDOR fix)
+router.patch('/:id', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const goalId = String(req.params.id)
+
+  const existing = await prisma.goal.findFirst({
+    where: { id: goalId, userId: req.userId },
+  })
+  if (!existing) {
+    throw new NotFoundError('Goal not found')
   }
-})
+
+  const parsed = updateGoalSchema.parse(req.body)
+
+  const updated = await prisma.goal.update({
+    where: { id: goalId },
+    data: {
+      ...parsed,
+      ...(parsed.targetDate && { targetDate: new Date(parsed.targetDate) }),
+    },
+  })
+
+  // Invalidate reports cache
+  invalidateCache(`reports:${req.userId}`)
+
+  res.json(updated)
+}))
+
+// DELETE goal (IDOR fix)
+router.delete('/:id', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const goalId = String(req.params.id)
+
+  const existing = await prisma.goal.findFirst({
+    where: { id: goalId, userId: req.userId },
+  })
+  if (!existing) {
+    throw new NotFoundError('Goal not found')
+  }
+
+  await prisma.goal.delete({
+    where: { id: goalId },
+  })
+
+  // Invalidate reports cache
+  invalidateCache(`reports:${req.userId}`)
+
+  res.json({ message: 'Goal deleted' })
+}))
 
 export default router

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 /** Returns headers with the stored JWT token for authenticated requests. */
 function authHeaders() {
@@ -136,8 +136,8 @@ export const api = {
   },
 
   async refreshPrices(): ApiResult {
-    return request(`${BASE_URL}/holdings/prices`, {
-      method: 'GET', headers: authHeaders(),
+    return request(`${BASE_URL}/holdings/refresh`, {
+      method: 'POST', headers: authHeaders(),
     })
   },
 

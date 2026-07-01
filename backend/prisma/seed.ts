@@ -50,7 +50,7 @@ async function main() {
   const retirement = await prisma.account.upsert({
     where: { id: 'acc_401k' },
     update: {},
-    create: { id: 'acc_401k', userId: user.id, name: '401k Retirement', type: '401k', balance: 289500.00 },
+    create: { id: 'acc_401k', userId: user.id, name: '401k Retirement', type: 'retirement', balance: 289500.00 },
   })
 
   // Create transactions

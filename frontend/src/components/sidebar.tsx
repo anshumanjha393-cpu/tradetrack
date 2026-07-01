@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@/lib/auth-context'
 import { useCurrency } from '@/lib/currency-context'
+import { useTheme } from '@/lib/theme-context'
 import {
   LayoutDashboard,
   Wallet,
@@ -15,6 +16,8 @@ import {
   X,
   LogOut,
   DollarSign,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -43,6 +46,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             key={item.href}
             to={item.href}
             onClick={onNavigate}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
               'group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition-colors touch-target',
               'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground',
@@ -70,16 +74,12 @@ export function Sidebar() {
 
   const closeDrawer = useCallback(() => setOpen(false), [])
 
-  // Close drawer on route change
-  // We use useEffect below for this
-
   return (
     <>
       {/* Mobile top bar - sticky */}
       <header
         className={cn(
           'sticky top-0 z-40 flex items-center justify-between border-b border-sidebar-border bg-background/80 px-4 py-3 backdrop-blur-xl sm:px-5 lg:hidden',
-          // Hide top bar when drawer is open on mobile
         )}
       >
         <div className="flex items-center gap-3">
@@ -87,6 +87,8 @@ export function Sidebar() {
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            aria-controls="mobile-drawer"
             className="touch-target flex items-center justify-center rounded-xl border border-border p-2 text-foreground"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -94,6 +96,7 @@ export function Sidebar() {
           <Brand compact />
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle compact />
           <MobileCurrencyToggle />
           <UserAvatar />
         </div>
@@ -115,6 +118,7 @@ export function Sidebar() {
             />
             {/* Drawer panel */}
             <motion.aside
+              id="mobile-drawer"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
@@ -150,6 +154,36 @@ export function Sidebar() {
         </div>
       </aside>
     </>
+  )
+}
+
+function ThemeToggle({ compact = false }: { compact?: boolean }) {
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="touch-target flex items-center justify-center rounded-xl border border-border p-2 text-foreground transition-colors hover:bg-secondary"
+      >
+        {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      className="touch-target flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors"
+    >
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
+    </button>
   )
 }
 
@@ -208,7 +242,7 @@ function Profile({ onNavigate }: { onNavigate?: () => void }) {
   const { user, logout } = useAuth()
   const { currency, setCurrency } = useCurrency()
   const navigate = useNavigate()
-  const [showLogout, setShowLogout] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -223,7 +257,9 @@ function Profile({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="relative">
       <button
-        onClick={() => setShowLogout((v) => !v)}
+        onClick={() => setShowMenu((v) => !v)}
+        aria-expanded={showMenu}
+        aria-haspopup="menu"
         className="touch-target w-full flex items-center gap-3 rounded-2xl border border-sidebar-border bg-sidebar-accent/40 p-3 hover:bg-sidebar-accent/60 transition-colors"
       >
         <span className="flex size-9 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">
@@ -239,8 +275,9 @@ function Profile({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </button>
 
-      {showLogout && (
-        <div className="absolute bottom-full mb-2 w-full rounded-2xl border border-sidebar-border bg-sidebar p-1 shadow-lg">
+      {showMenu && (
+        <div role="menu" className="absolute bottom-full mb-2 w-full rounded-2xl border border-sidebar-border bg-sidebar p-1 shadow-lg">
+          {/* Currency selector */}
           <div className="px-3 py-2 mb-1">
             <div className="flex items-center gap-2 text-xs text-sidebar-foreground mb-2">
               <DollarSign className="size-3" />
@@ -250,6 +287,7 @@ function Profile({ onNavigate }: { onNavigate?: () => void }) {
               {(['USD', 'INR'] as const).map((c) => (
                 <button
                   key={c}
+                  role="menuitem"
                   onClick={() => setCurrency(c)}
                   className={cn(
                     'touch-target flex-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors',
@@ -263,7 +301,13 @@ function Profile({ onNavigate }: { onNavigate?: () => void }) {
               ))}
             </div>
           </div>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
+
+          {/* Sign out */}
           <button
+            role="menuitem"
             onClick={handleLogout}
             className="touch-target flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-destructive transition-colors"
           >

@@ -39,11 +39,18 @@ app.use(compression())
 // CORS — allow dev and production origins
 const allowedOrigins = [
   'http://localhost:5173',
+  'https://tradetrack-wine.vercel.app',
   process.env.ALLOWED_ORIGIN,
-].filter(Boolean) as string[]
+].filter(Boolean)
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
 }))
 app.use(express.json())
